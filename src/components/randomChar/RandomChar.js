@@ -1,5 +1,7 @@
 
 import { Component } from 'react';
+import Spinner from '../spinner/Spinner';
+import ErrorMessage from '../errorMassage/ErrorMessage';
 import MarvelService from '../../services/MarvelService';
 
 import './randomChar.scss';
@@ -12,13 +14,25 @@ class RandomChar extends Component {
     }
 
     state = {
-        char: {}
+        char: {},
+        loading: true,
+        error: false
     }
 
     marvelService = new MarvelService();
 
     onCharLoaded = (char) => {
-        this.setState({ char: char })
+        this.setState({
+            char: char,
+            loading: false
+        })
+    }
+
+    onError = () => {
+        this.setState({
+            loading: false,
+            error: true
+        })
     }
 
     updateChar = () => {
@@ -26,28 +40,15 @@ class RandomChar extends Component {
         this.marvelService
             .getCharacter(id)
             .then(this.onCharLoaded)
+            .catch(this.onError);
     }
 
     render() {
-        const { char: { name, description, thumbnail, homepage, wiki } } = this.state;
+        const { char, loading, error } = this.state;
 
         return (
             <div className="randomchar">
-                <div className="randomchar__block">
-                    <img src={thumbnail} alt="Random character" className="randomchar__img" />
-                    <div className="randomchar__info">
-                        <p className="randomchar__name">{name}</p>
-                        <p className="randomchar__descr">{description}</p>
-                        <div className="randomchar__btns">
-                            <a href={homepage} className="button button__main">
-                                <div className="inner">homepage</div>
-                            </a>
-                            <a href={wiki} className="button button__secondary">
-                                <div className="inner">Wiki</div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                {error ? <ErrorMessage /> : loading ? <Spinner /> : <View char={char} />}
                 <div className="randomchar__static">
                     <p className="randomchar__title">
                         Random character for today!<br />
@@ -64,6 +65,28 @@ class RandomChar extends Component {
             </div>
         )
     }
+}
+
+const View = ({ char }) => {
+    const { name, description, thumbnail, homepage, wiki } = char;
+
+    return (
+        <div className="randomchar__block">
+            <img src={thumbnail} alt="Random character" className="randomchar__img" />
+            <div className="randomchar__info">
+                <p className="randomchar__name">{name}</p>
+                <p className="randomchar__descr">{description}</p>
+                <div className="randomchar__btns">
+                    <a href={homepage} className="button button__main">
+                        <div className="inner">homepage</div>
+                    </a>
+                    <a href={wiki} className="button button__secondary">
+                        <div className="inner">Wiki</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    )
 }
 
 export default RandomChar;
